@@ -7,6 +7,9 @@ import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import io.reactivex.BackpressureStrategy
+import io.reactivex.Flowable
+import io.reactivex.FlowableEmitter
 import java.util.*
 
 /**
@@ -55,11 +58,11 @@ abstract class BaseActivity<T : BasePresenter> : AppCompatActivity() {
      */
     abstract fun injectDI()
 
-    private var requestListener: RequestPermissionsResultCallback? = null
-
     private var permissions: Array<out String>? = null
 
     private var permissionRequestCode: Int? = null
+
+    private var requestListener: FlowableEmitter<PermissionRequestResult>? = null
 
     /**
      * request permission(s), **DON'T FORGET INCLUDE PERMISSION IN MANIFEST**
@@ -71,29 +74,33 @@ abstract class BaseActivity<T : BasePresenter> : AppCompatActivity() {
      *[RequestPermissionsResultCallback.onGranted] granted all permission
      *[RequestPermissionsResultCallback.onDenied] one or more denied by user
      */
-    protected fun requestPermissionHelper(vararg permission: String, permissionRequestCode: Int, requestListener: RequestPermissionsResultCallback) {
-        this.requestListener = requestListener
-
+    protected fun requestPermissionHelper(vararg permission: String, permissionRequestCode: Int): Flowable<PermissionRequestResult> {
         // if one or more of permission not granted
         // don't request every time because it's async and block user input
-        if (!isGrantedAll(permission)) {
-            this.permissions = permission
-            this.permissionRequestCode = permissionRequestCode
+        return Flowable.create(
+                { requestListener ->
+                    run {
+                        this.requestListener = requestListener;
+                        if (!isGrantedAll(permission)) {
+                            this.permissions = permission
+                            this.permissionRequestCode = permissionRequestCode
 
-            ActivityCompat.requestPermissions(this,
-                    permission,
-                    permissionRequestCode)
-        } else {
-            this.requestListener?.onGranted(permissionRequestCode)
-        }
+                            ActivityCompat.requestPermissions(this,
+                                    permission,
+                                    permissionRequestCode)
+                        } else {
+                            requestListener.onNext(PermissionRequestResult(permissionRequestCode, PermissionRequestResult.STATUS_PERMISSION_GRANTED))
+                        }
+                    }
+                }, BackpressureStrategy.LATEST)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         if (requestCode == this.permissionRequestCode) {
             if (Arrays.equals(permissions, this.permissions) && isGrantedAll(grantResults))
-                requestListener?.onGranted(requestCode)
+                requestListener?.onNext(PermissionRequestResult(requestCode, PermissionRequestResult.STATUS_PERMISSION_GRANTED))
             else
-                requestListener?.onDenied(requestCode)
+                requestListener?.onNext(PermissionRequestResult(requestCode, PermissionRequestResult.STATUS_PERMISSION_DENIED))
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
@@ -122,22 +129,21 @@ abstract class BaseActivity<T : BasePresenter> : AppCompatActivity() {
     }
 
     /**
-     * callback for request permission
+     * for deliver result of request permission
+     * @param requestCode to identify which request
+     * @param status [PermissionRequestResult.STATUS_PERMISSION_GRANTED], [PermissionRequestResult.STATUS_PERMISSION_DENIED]
      */
-    interface RequestPermissionsResultCallback {
-        /**
-         * when user accepted all permissions
-         *
-         * @param permissionRequestCode to know which request
-         */
-        fun onGranted(permissionRequestCode: Int)
-
-        /**
-         * when one or all permissions request denied
-         *
-         * @param permissionRequestCode to know which request
-         */
-        fun onDenied(permissionRequestCode: Int)
+    data class PermissionRequestResult(val requestCode: Int, val status: Int) {
+        companion object {
+            /**
+             * when user accepted all permissions
+             */
+            const val STATUS_PERMISSION_GRANTED = 0
+            /**
+             * when one or all permissions request denied
+             */
+            const val STATUS_PERMISSION_DENIED = -1
+        }
     }
 
     /**

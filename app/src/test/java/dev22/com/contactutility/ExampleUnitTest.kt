@@ -2,8 +2,6 @@ package dev22.com.contactutility
 
 import org.junit.Test
 
-import org.junit.Assert.*
-
 /**
  * Example local unit test, which will execute on the development machine (host).
  *
@@ -12,6 +10,23 @@ import org.junit.Assert.*
 class ExampleUnitTest {
     @Test
     fun addition_isCorrect() {
-        assertEquals(4, 2 + 2)
+        val a =2
+        val b=4
+
+        val max = if (a > b) {
+            7
+        } else {
+            2
+        }
+
+        print(max)
+
+        var b = fff()
+//        test().dddddd()
+    }
+
+
+    object fff{
+      val aaa = 4
     }
 }
