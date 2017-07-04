@@ -2,6 +2,7 @@ package dev22.com.contactutility.main
 
 import android.Manifest
 import android.content.Intent
+import android.widget.Toast
 import dev22.com.contactutility.BaseActivity
 import dev22.com.contactutility.R
 import dev22.com.contactutility.contact.ContactActivity
@@ -28,12 +29,22 @@ class MainActivity : BaseActivity<MainPresenter>(), MainContract.View {
         btn_backup.setOnClickListener { presenter.clickBackup() }
     }
 
+    override fun openExport() {
+        TODO("not implemented")
+    }
+
     override fun showWarning() {
         showWarningPermissionDenied(container, "permission is need for this action please try again.")
     }
 
     override fun openImport() {
-        startActivity(Intent(this, ContactActivity::class.java))
+        // -> open default file explorer
+        // -> select .csv file
+        // -> check valid ?
+        // -> clear all && import to sqlite
+        // -> open contact & param
+        Toast.makeText(this, "import contact", Toast.LENGTH_LONG).show()
+//        startActivity(Intent(this, ContactActivity::class.java))
     }
 
     override fun requestContactPermission(): Flowable<PermissionRequestResult> = requestPermissionHelper(permission = Manifest.permission.WRITE_CONTACTS, permissionRequestCode = REQUEST_PERMISSION_CONTACT)

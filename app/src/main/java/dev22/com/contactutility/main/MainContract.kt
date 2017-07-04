@@ -25,6 +25,8 @@ class MainContract {
          * open contact activity
          */
         fun openImport()
+
+        fun openExport()
     }
 
     internal interface Presenter : BasePresenter {
