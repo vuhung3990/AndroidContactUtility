@@ -20,6 +20,11 @@ class MainContract {
          * @see requestContactPermission
          */
         fun showWarning()
+
+        /**
+         * open contact activity
+         */
+        fun openImport()
     }
 
     internal interface Presenter : BasePresenter {

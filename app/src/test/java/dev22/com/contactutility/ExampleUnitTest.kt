@@ -10,23 +10,5 @@ import org.junit.Test
 class ExampleUnitTest {
     @Test
     fun addition_isCorrect() {
-        val a =2
-        val b=4
-
-        val max = if (a > b) {
-            7
-        } else {
-            2
-        }
-
-        print(max)
-
-        var b = fff()
-//        test().dddddd()
-    }
-
-
-    object fff{
-      val aaa = 4
     }
 }

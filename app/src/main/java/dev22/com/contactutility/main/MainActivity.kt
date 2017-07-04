@@ -1,9 +1,10 @@
 package dev22.com.contactutility.main
 
 import android.Manifest
-import android.widget.Toast
+import android.content.Intent
 import dev22.com.contactutility.BaseActivity
 import dev22.com.contactutility.R
+import dev22.com.contactutility.contact.ContactActivity
 import dev22.com.contactutility.di.CompositeDisableModule
 import dev22.com.contactutility.main.di.DaggerMainComponent
 import dev22.com.contactutility.main.di.MainPresenterModule
@@ -28,7 +29,11 @@ class MainActivity : BaseActivity<MainPresenter>(), MainContract.View {
     }
 
     override fun showWarning() {
-        Toast.makeText(this, "permission is need for this action please try again.", Toast.LENGTH_LONG).show()
+        showWarningPermissionDenied(container, "permission is need for this action please try again.")
+    }
+
+    override fun openImport() {
+        startActivity(Intent(this, ContactActivity::class.java))
     }
 
     override fun requestContactPermission(): Flowable<PermissionRequestResult> = requestPermissionHelper(permission = Manifest.permission.WRITE_CONTACTS, permissionRequestCode = REQUEST_PERMISSION_CONTACT)

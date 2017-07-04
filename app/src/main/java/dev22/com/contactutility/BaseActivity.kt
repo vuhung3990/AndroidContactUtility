@@ -1,16 +1,22 @@
 package dev22.com.contactutility
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
+import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.view.View
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.FlowableEmitter
 import java.util.*
+
 
 /**
  * base activity for automatic subscribe and unsubscribe automatically
@@ -84,7 +90,6 @@ abstract class BaseActivity<T : BasePresenter> : AppCompatActivity() {
                         if (!isGrantedAll(permission)) {
                             this.permissions = permission
                             this.permissionRequestCode = permissionRequestCode
-
                             ActivityCompat.requestPermissions(this,
                                     permission,
                                     permissionRequestCode)
@@ -158,5 +163,25 @@ abstract class BaseActivity<T : BasePresenter> : AppCompatActivity() {
      */
     fun Context.printLog(msg: String) {
         Log.d(this.packageName, msg)
+    }
+
+    /**
+     * permission denied by user
+     */
+    fun showWarningPermissionDenied(view: View, msg: String) {
+        Snackbar.make(view, msg, 10000)
+                .setAction(R.string.grant_permission_manual, { openAppSetting() })
+                .show()
+    }
+
+    /**
+     * open app setting
+     */
+    private fun openAppSetting() {
+        val intent = Intent()
+        intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+        val uri = Uri.fromParts("package", packageName, null)
+        intent.data = uri
+        startActivity(intent)
     }
 }

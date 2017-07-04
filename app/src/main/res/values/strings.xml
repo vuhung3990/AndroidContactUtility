@@ -3,4 +3,5 @@
     <string name="btn_import">Import</string>
     <string name="btn_backup">Backup</string>
     <string name="btn_detect_duplicate">Find Duplicate</string>
+    <string name="grant_permission_manual">Manual</string>
 </resources>
