@@ -5,6 +5,7 @@ import dev22.com.contactutility.main.MainContract.View
 import io.reactivex.disposables.CompositeDisposable
 import org.junit.Before
 import org.junit.Test
+import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
@@ -25,12 +26,15 @@ class MainPresenterTest {
     fun handleRequestPermission() {
         // permission denied
         val denied = BaseActivity.PermissionRequestResult(11, BaseActivity.PermissionRequestResult.STATUS_PERMISSION_DENIED)
-        presenter.handleRequestContactPermission(denied)
+        presenter.handleRequestContactPermission(denied, {})
         verify(view).showWarning()
 
         // when permission granted
         val granted = BaseActivity.PermissionRequestResult(11, BaseActivity.PermissionRequestResult.STATUS_PERMISSION_GRANTED)
-        presenter.handleRequestContactPermission(granted)
+        presenter.handleRequestContactPermission(granted, { view.openImport() })
         verify(view).openImport()
+
+        presenter.handleRequestContactPermission(granted, { view.openExport() })
+        verify(view).openExport()
     }
 }
