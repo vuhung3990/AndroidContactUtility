@@ -12,9 +12,8 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
-import io.reactivex.BackpressureStrategy
-import io.reactivex.Flowable
-import io.reactivex.FlowableEmitter
+import io.reactivex.Single
+import io.reactivex.SingleEmitter
 import java.util.*
 
 
@@ -68,7 +67,7 @@ abstract class BaseActivity<T : BasePresenter> : AppCompatActivity() {
 
     private var permissionRequestCode: Int? = null
 
-    private var requestListener: FlowableEmitter<PermissionRequestResult>? = null
+    private var requestListener: SingleEmitter<PermissionRequestResult>? = null
 
     /**
      * request permission(s), **DON'T FORGET INCLUDE PERMISSION IN MANIFEST**
@@ -80,10 +79,10 @@ abstract class BaseActivity<T : BasePresenter> : AppCompatActivity() {
      *[RequestPermissionsResultCallback.onGranted] granted all permission
      *[RequestPermissionsResultCallback.onDenied] one or more denied by user
      */
-    protected fun requestPermissionHelper(vararg permission: String, permissionRequestCode: Int): Flowable<PermissionRequestResult> {
+    protected fun requestPermissionHelper(vararg permission: String, permissionRequestCode: Int): Single<PermissionRequestResult> {
         // if one or more of permission not granted
         // don't request every time because it's async and block user input
-        return Flowable.create(
+        return Single.create(
                 { requestListener ->
                     run {
                         this.requestListener = requestListener;
@@ -94,18 +93,19 @@ abstract class BaseActivity<T : BasePresenter> : AppCompatActivity() {
                                     permission,
                                     permissionRequestCode)
                         } else {
-                            requestListener.onNext(PermissionRequestResult(permissionRequestCode, PermissionRequestResult.STATUS_PERMISSION_GRANTED))
+                            requestListener.onSuccess(PermissionRequestResult(permissionRequestCode, PermissionRequestResult.STATUS_PERMISSION_GRANTED))
                         }
                     }
-                }, BackpressureStrategy.LATEST)
+                }
+        )
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         if (requestCode == this.permissionRequestCode) {
             if (Arrays.equals(permissions, this.permissions) && isGrantedAll(grantResults))
-                requestListener?.onNext(PermissionRequestResult(requestCode, PermissionRequestResult.STATUS_PERMISSION_GRANTED))
+                requestListener?.onSuccess(PermissionRequestResult(requestCode, PermissionRequestResult.STATUS_PERMISSION_GRANTED))
             else
-                requestListener?.onNext(PermissionRequestResult(requestCode, PermissionRequestResult.STATUS_PERMISSION_DENIED))
+                requestListener?.onSuccess(PermissionRequestResult(requestCode, PermissionRequestResult.STATUS_PERMISSION_DENIED))
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
