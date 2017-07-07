@@ -1,6 +1,7 @@
 package dev22.com.contactutility.main
 
 import dev22.com.contactutility.BaseActivity
+import dev22.com.contactutility.data.Repository
 import io.reactivex.Maybe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -11,7 +12,7 @@ import javax.inject.Inject
 /**
  * Created by dev22 on 6/28/17.
  */
-class MainPresenter @Inject constructor(val view: MainContract.View, val compositeDisposable: CompositeDisposable) : MainContract.Presenter {
+class MainPresenter @Inject constructor(val view: MainContract.View, val compositeDisposable: CompositeDisposable, val repo : Repository) : MainContract.Presenter {
     private var flowImport: Disposable? = null
 
     override fun clickImport() {
@@ -32,11 +33,14 @@ class MainPresenter @Inject constructor(val view: MainContract.View, val composi
                 }
                 // if file path not empty or null
                 ?.filter {
-                    it ->
-                    !it.isNullOrEmpty()
+                    filePath ->
+                    !filePath.isNullOrEmpty()
                 }
                 // check valid cvs file on computation thread
                 ?.observeOn(Schedulers.computation())
+                ?.map {
+                    repo.cleanAndImportContact()
+                }
                 ?.subscribe()
     }
 

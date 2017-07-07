@@ -1,11 +1,11 @@
 package dev22.com.contactutility.main
 
 import dev22.com.contactutility.BaseActivity
+import dev22.com.contactutility.data.Repository
 import dev22.com.contactutility.main.MainContract.View
 import io.reactivex.disposables.CompositeDisposable
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
@@ -19,7 +19,7 @@ class MainPresenterTest {
     @Before
     fun setUp() {
         view = mock(View::class.java)
-        presenter = MainPresenter(view, CompositeDisposable())
+        presenter = MainPresenter(view, CompositeDisposable(), Repository())
     }
 
     @Test
