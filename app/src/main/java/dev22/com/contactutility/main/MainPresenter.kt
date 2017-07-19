@@ -1,18 +1,20 @@
 package dev22.com.contactutility.main
 
+import android.util.Log
 import dev22.com.contactutility.BaseActivity
 import dev22.com.contactutility.data.Repository
 import io.reactivex.Maybe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
+import io.reactivex.functions.Consumer
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
 /**
  * Created by dev22 on 6/28/17.
  */
-class MainPresenter @Inject constructor(val view: MainContract.View, val compositeDisposable: CompositeDisposable, val repo : Repository) : MainContract.Presenter {
+class MainPresenter @Inject constructor(val view: MainContract.View, val compositeDisposable: CompositeDisposable, val repo: Repository) : MainContract.Presenter {
     private var flowImport: Disposable? = null
 
     override fun clickImport() {
@@ -37,15 +39,25 @@ class MainPresenter @Inject constructor(val view: MainContract.View, val composi
                     !filePath.isNullOrEmpty()
                 }
                 // check valid cvs file on computation thread
-                ?.observeOn(Schedulers.computation())
-                ?.map {
-                    repo.cleanAndImportContact()
+                ?.observeOn(Schedulers.io())
+                ?.flatMapSingle {
+                    filePath ->
+                    repo.cleanAndImportContact(filePath)
+                }
+                // saved into db
+                ?.doOnSuccess {
+                    it.toString()
+                }
+                // when parse csv or save into db error
+                // show error
+                ?.doOnError {
+                    view.showImportError()
                 }
                 ?.subscribe()
     }
 
     fun requestContactPermission(): Maybe<BaseActivity.PermissionRequestResult>? {
-        return view.requestContactPermission()
+        return view.requestContactAndReadExternalStoragePermission()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .filter {
@@ -70,7 +82,7 @@ class MainPresenter @Inject constructor(val view: MainContract.View, val composi
     }
 
     override fun clickBackup() {
-        view.requestContactPermission()
+        view.requestContactAndReadExternalStoragePermission()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .filter {

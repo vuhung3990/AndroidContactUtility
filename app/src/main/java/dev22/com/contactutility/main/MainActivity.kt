@@ -1,6 +1,7 @@
 package dev22.com.contactutility.main
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.Intent
 import android.widget.Toast
 import dev22.com.contactutility.BaseActivity
@@ -14,13 +15,18 @@ import io.reactivex.SingleEmitter
 import kotlinx.android.synthetic.main.activity_main.*
 import javax.inject.Inject
 
+
 class MainActivity : BaseActivity<MainPresenter>(), MainContract.View {
+    override fun showImportError() {
+        TODO("not implemented")
+    }
+
     companion object {
         const val REQUEST_PERMISSION_CONTACT: Int = 11
         const val REQUEST_FILE_PICKER: Int = 13
     }
 
-    private var filePickerEmmitter: SingleEmitter<String>? = null
+    private var filePickerEmitter: SingleEmitter<String>? = null
 
     @Inject lateinit var presenter: MainPresenter
 
@@ -36,13 +42,12 @@ class MainActivity : BaseActivity<MainPresenter>(), MainContract.View {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_FILE_PICKER) {
             val filePath = if (data != null) data.data.path else ""
-            filePickerEmmitter?.onSuccess(filePath)
+            filePickerEmitter?.onSuccess(filePath)
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun openExport() {
-        TODO("not implemented")
     }
 
     override fun showWarning() {
@@ -60,16 +65,19 @@ class MainActivity : BaseActivity<MainPresenter>(), MainContract.View {
     }
 
     override fun chooseFile(): Single<String> {
-        val intent = Intent(Intent.ACTION_GET_CONTENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
         intent.type = "text/*"
-        startActivityForResult(Intent.createChooser(intent, "Open CSV"), 13);
+        startActivityForResult(Intent.createChooser(intent, "Open CSV"), 13)
         return Single.create { emitter ->
-            this.filePickerEmmitter = emitter
+            this.filePickerEmitter = emitter
         }
     }
 
-    override fun requestContactPermission(): Single<PermissionRequestResult> = requestPermissionHelper(permission = Manifest.permission.WRITE_CONTACTS, permissionRequestCode = REQUEST_PERMISSION_CONTACT)
+    override fun requestContactAndReadExternalStoragePermission(): Single<PermissionRequestResult> = requestPermissionHelper(
+            Manifest.permission.WRITE_CONTACTS,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            permissionRequestCode = REQUEST_PERMISSION_CONTACT)
 
     override fun injectDI() {
         DaggerMainComponent
@@ -82,7 +90,7 @@ class MainActivity : BaseActivity<MainPresenter>(), MainContract.View {
     }
 
     override fun onDestroy() {
-        presenter.terminate();
+        presenter.terminate()
         super.onDestroy()
     }
 }

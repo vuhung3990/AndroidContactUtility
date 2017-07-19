@@ -22,7 +22,7 @@ import java.util.*
  *
  * @param <T> presenter class implement base presenter
  */
-abstract class BaseActivity<T : BasePresenter> : AppCompatActivity() {
+abstract class BaseActivity<out T : BasePresenter> : AppCompatActivity() {
     private var presenter: T? = null
 
     override fun onPause() {
@@ -40,7 +40,7 @@ abstract class BaseActivity<T : BasePresenter> : AppCompatActivity() {
         injectDI()
         setContentView(getLayoutContent())
         presenter = getPresenterForAutoDisposeRx()
-        initView();
+        initView()
     }
 
     /**
@@ -74,7 +74,6 @@ abstract class BaseActivity<T : BasePresenter> : AppCompatActivity() {
 
      * @param permission            permission to request (**Manifest.permission.***)
      * @param permissionRequestCode request code
-     * @param requestListener       callback for request permission
      *
      *[RequestPermissionsResultCallback.onGranted] granted all permission
      *[RequestPermissionsResultCallback.onDenied] one or more denied by user
@@ -115,11 +114,7 @@ abstract class BaseActivity<T : BasePresenter> : AppCompatActivity() {
      * @return true: if all granted else otherwise
      */
     protected fun isGrantedAll(permissions: Array<out String>): Boolean {
-        for (permission in permissions) {
-            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED)
-                return false
-        }
-        return true
+        return permissions.none { ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED }
     }
 
     /**
@@ -127,10 +122,7 @@ abstract class BaseActivity<T : BasePresenter> : AppCompatActivity() {
      * @return true: if all granted
      */
     private fun isGrantedAll(grantResults: IntArray): Boolean {
-        for (gr in grantResults) {
-            if (gr != PackageManager.PERMISSION_GRANTED) return false
-        }
-        return true
+        return grantResults.none { it != PackageManager.PERMISSION_GRANTED }
     }
 
     /**

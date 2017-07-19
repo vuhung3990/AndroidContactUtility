@@ -2,9 +2,7 @@ package dev22.com.contactutility.main
 
 import dev22.com.contactutility.BaseActivity
 import dev22.com.contactutility.BasePresenter
-import io.reactivex.Flowable
 import io.reactivex.Single
-import io.reactivex.SingleObserver
 
 /**
  * Created by dev22 on 6/28/17.
@@ -13,13 +11,13 @@ import io.reactivex.SingleObserver
 class MainContract {
     interface View {
         /**
-         * request contact permission
+         * request contact and read external storage permission
          */
-        fun requestContactPermission(): Single<BaseActivity.PermissionRequestResult>
+        fun requestContactAndReadExternalStoragePermission(): Single<BaseActivity.PermissionRequestResult>
 
         /**
          * show warning permission not grant
-         * @see requestContactPermission
+         * @see requestContactAndReadExternalStoragePermission
          */
         fun showWarning()
 
@@ -31,6 +29,11 @@ class MainContract {
         fun chooseFile(): Single<String>
 
         fun openExport()
+
+        /**
+         * show error when parse csv or import to db error
+         */
+        fun showImportError()
     }
 
     internal interface Presenter : BasePresenter {
